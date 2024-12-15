@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum IsPaid {
+  PENDING
+  SUCCESS
+  CANCELLED
+}
+
+enum PaymentMethod {
+  TRANSFER
+  COD
+}
+
+model Users {
+  id Int @id @default(autoincrement())
+  username String
+  email String @unique
+  password String
+  role Role
+  profile_image String?
+  address String?
+  city String?
+  post_code Int?
+  phone_number String?
+  refresh_token String? @db.Text
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relation
+  cart Carts[] 
+  transaction Transactions[]
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  name String @unique
+  slug String @unique
+  category_image String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  
+  // Relation
+  product Products[]
+}
+
+model Products {
+  id Int @id @default(autoincrement())
+  category_id Int?
+  name String
+  slug String @unique
+  product_image String?
+  price Int
+  description String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relation
+  category Category? @relation(fields: [category_id], references: [id])
+  cart Carts[]
+  transaction_detail Transaction_Details[]
+}
+
+model Carts {
+  user_id Int
+  product_id Int
+  quantity Int @default(1)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relation
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product Products @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, product_id])
+}
+
+model Transactions {
+  id Int @id @default(autoincrement())
+  user_id Int
+  is_paid IsPaid
+  notes String?
+  proof String? 
+  sub_total Float
+  tax Float
+  delivery_fee Float
+  total_amount Float
+  payment_method PaymentMethod
+
+  // If user want to delivery to different address
+  address String?
+  city String?
+  post_code Int?
+  phone_number String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relation
+  user Users @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  transaction_detail Transaction_Details[]
+}
+
+model Transaction_Details {
+  id Int @id @default(autoincrement())
+  transaction_id Int
+  product_id Int
+  price Int
+  quantity Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relation
+  product Products @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  transaction Transactions @relation(fields: [transaction_id], references: [id], onDelete: Cascade)
+}
