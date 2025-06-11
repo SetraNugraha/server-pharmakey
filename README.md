@@ -46,7 +46,7 @@ Create Table on PostgreSQL
   npx prisma db push
 ```
 
-Seeder for dummy data (Opsional)
+Run Seeder
 
 ```bash
   npm run seed
